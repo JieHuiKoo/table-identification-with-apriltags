@@ -9,7 +9,6 @@ project(table_identification_with_apriltags)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -60,18 +59,16 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
-add_action_files(
-  DIRECTORY action
-  FILES
-  AlignToTable.action
-)
+#add_action_files(
+#  DIRECTORY action
+#  FILES
+#)
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs  # Or other packages containing msgs
-  actionlib_msgs
-)
+#generate_messages(
+#  DEPENDENCIES
+#  std_msgs  # Or other packages containing msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,8 +101,8 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES table-identification-with_apriltags
-  CATKIN_DEPENDS rospy actionlib_msgs
+#  LIBRARIES table_identification_with_apriltags
+  CATKIN_DEPENDS rospy
 #  DEPENDS system_lib
 )
 
@@ -134,7 +131,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/table
-#table-identification-with-apriltags_node.cpp)
+#table_identification_with_apriltags_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

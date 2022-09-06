@@ -10,6 +10,7 @@ from pupil_apriltags import Detector
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 from std_msgs.msg import Int32
 from std_msgs.msg import String
 from std_msgs.msg import Bool
@@ -258,15 +259,17 @@ def find_center_x_coord(apriltag_locations, found_apriltag_idx_array):
     
     if center:
         if x_center != 0:
-            x_center = (center.center[0] + x_center)
+            x_center = (center.center[0] + x_center)/2
         else:
             x_center = center.center[0]
 
     return int(x_center)
 
-def set_point_reached(skew_offset, center_offset):
-    if abs(center_offset) <= 10:
+def set_point_reached(center_offset):
+    if abs(center_offset) <= 5:
         return True
+    else:
+        return False
     
 def get_center_horizontal_offset_of_apriltags(apriltag_locations, found_apriltag_idx_array, image_x_center):
        
@@ -278,6 +281,9 @@ def get_center_horizontal_offset_of_apriltags(apriltag_locations, found_apriltag
 
 
 def process_image(image_msg):
+
+    tableSide_found = Bool()
+    tableSide_setPointReached = Bool()
 
     # Declare the cvBridge object
     proc_image = imgmsg_to_cv2(image_msg)
@@ -293,41 +299,45 @@ def process_image(image_msg):
 
     found_apriltag_idx_array = get_identified_corners(apriltag_locations, tableSide_tagIDs)
     
+    # Check if able to identify center
+    tableSide_found.data = able_to_identify_center(found_apriltag_idx_array)
+
     # Find the center of the apriltags
     center_offset, apriltags_center_x = get_center_horizontal_offset_of_apriltags(apriltag_locations, found_apriltag_idx_array, int(proc_image.shape[1]/2))
-        
+    
     # Center Line
     cv2.line(proc_image, (int(proc_image.shape[1]//2), int(proc_image.shape[0] * 0.11)), (int(proc_image.shape[1]//2), int(proc_image.shape[0])), (255,0, 0), 3) 
 
 
-    if set_point_reached(None, center_offset):
+    if set_point_reached(center_offset):
         center_color = (255, 0, 0)
     else:
         center_color = (0, 255, 0)
     
-    if center_offset != -1:
-        tableSide_found = True
-        
+    if center_offset != -1:        
         cv2.line(proc_image, (apriltags_center_x, 0), (apriltags_center_x, proc_image.shape[0]), center_color, 3)
         cv2.putText(proc_image, "Offset: " + str(center_offset) + " pix", 
                     (int(proc_image.shape[1]//2)+10, int(proc_image.shape[0]*0.15)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
     else:
-        tableSide_found = False
         center_offset = 0
 
-    center_offset_pub = rospy.Publisher('frontCamera/tableSide_CenterOffset', Int32, queue_size=1)
-    center_offset_pub.publish(center_offset)
+    center_offset_pub = rospy.Publisher('frontCamera/tableSideAlign_centerState', Float64, queue_size=1)
+    center_offset_pub.publish(Float64(apriltags_center_x))
+
+    center_setpoint_pub = rospy.Publisher('frontCamera/tableSideAlign_setPoint', Float64, queue_size=1)
+    center_setpoint_pub.publish(Float64(proc_image.shape[1]//2))
 
     image_pub = cv2_to_imgmsg(proc_image)
-    tableside_image_pub = rospy.Publisher('frontCamera/tableSide_AnnotatedImage', Image, queue_size=1)
+    tableside_image_pub = rospy.Publisher('frontCamera/tableSideAlign_AnnotatedImage', Image, queue_size=1)
     tableside_image_pub.publish(image_pub)
 
-    success_pub = rospy.Publisher('frontCamera/tableSide_Found', Bool, queue_size=1)
+    success_pub = rospy.Publisher('frontCamera/tableSideAlign_found', Bool, queue_size=1)
     success_pub.publish(tableSide_found)
 
-    center_aligned_pub = rospy.Publisher('frontCamera/tableSide_CenterAligned', Bool, queue_size=1)
-    center_aligned_pub.publish(set_point_reached(None, center_offset))
+    center_aligned_pub = rospy.Publisher('frontCamera/tableSideAlign_centerAligned', Bool, queue_size=1)
+    tableSide_setPointReached.data = set_point_reached(center_offset)
+    center_aligned_pub.publish(tableSide_setPointReached)
 
 def start_node():
     rospy.init_node('tableSide_align')
