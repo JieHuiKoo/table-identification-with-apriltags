@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>tabletop-identification-with-apriltags</name>
+  <name>table-identification-with-apriltags</name>
   <version>0.0.0</version>
   <description>The tabletop-identification-with-apriltags package</description>
 

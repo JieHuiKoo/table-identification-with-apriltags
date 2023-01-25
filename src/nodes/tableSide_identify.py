@@ -291,8 +291,8 @@ def process_image(image_msg):
     success_pub.publish(apriltags_success)
 
 def start_node():
-    rospy.init_node('table_identification')
-    rospy.loginfo('table_identify node started')
+    rospy.init_node('tableSide_identification')
+    rospy.loginfo('tableSides_identify node started')
 
     rospy.Subscriber("/frontCamera/color/image_raw", Image, process_image)
     
