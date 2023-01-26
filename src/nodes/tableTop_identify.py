@@ -301,6 +301,8 @@ def process_image(image_msg):
         cv2.putText(proc_image, "Offset: " + str(top_dist_offset) + " pix", (10, int(proc_image.shape[0]*top_control_point)+20),
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
+        apriltags_success = ""
+        
         if center_offset != -1:
             apriltags_success = "Center "
         if bottom_dist_offset != -1:
