@@ -276,7 +276,7 @@ def process_image(image_msg):
     bottom_control_point = 0.9
     top_control_point = 0.6
 
-    # If we find the Table Side
+    # If we find the Table Tops
     if apriltagsID_match(tableTop_tagIDs, found_tagIDs):
         
         # Find the angle of the apriltags
@@ -302,7 +302,7 @@ def process_image(image_msg):
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
         apriltags_success = ""
-        
+
         if center_offset != -1:
             apriltags_success = "Center "
         if bottom_dist_offset != -1:
@@ -339,8 +339,8 @@ def process_image(image_msg):
     success_pub.publish(apriltags_success)
 
 def start_node():
-    rospy.init_node('tableTop_identification')
-    rospy.loginfo('tableTop_identify node started')
+    rospy.init_node('tableTop_align')
+    rospy.loginfo('tableTop_align node started')
 
     rospy.Subscriber("/armCamera/color/image_raw", Image, process_image)
     
