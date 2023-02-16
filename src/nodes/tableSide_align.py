@@ -316,7 +316,7 @@ def start_node():
     rospy.init_node('tableSide_align')
     rospy.loginfo('tableSide_align node started')
 
-    rospy.Subscriber("/frontCamera/color/image_raw", Image, process_image)
+    rospy.Subscriber("/frontCamera/color/image_rect_color/compressed", Image, process_image)
     
     rospy.spin()
 
