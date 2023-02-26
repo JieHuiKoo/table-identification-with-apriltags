@@ -12,6 +12,7 @@ from geometry_msgs.msg import Point
 from std_msgs.msg import Float32
 from std_msgs.msg import Int32
 from std_msgs.msg import String
+from std_msgs.msg import Bool
 
 print("Python Version: " + str(sys.version_info[0]) + '.' + str(sys.version_info[1]))
 print("OpenCV Version: " + str(cv2.__version__))
@@ -106,14 +107,16 @@ class objectTagID:
     topRightID = int(-1)
     bottomRightID = int(-1)
     bottomLeftID = int(-1)
+    centerID = int(-1)
 
-    def __init__(self, topLeftID, topRightID, bottomRightID, bottomLeftID):
+    def __init__(self, topLeftID, topRightID, bottomRightID, bottomLeftID, centerID=-1):
         self.topLeftID = topLeftID
         self.topRightID = topRightID
         self.bottomRightID = bottomRightID
         self.bottomLeftID = bottomLeftID
+        self.centerID = centerID
         
-tableSide_tagIDs = objectTagID(7, 4, 5, 6) 
+tableSide_tagIDs = objectTagID(7, 4, 5, 6, 12) 
 tableTop_tagIDs = objectTagID(3, 0, 1, 2)
 
 armCamera_Intrinsics = [431.09375, 430.4695739746094, 418.5455017089844, 235.63516235351562]
@@ -149,7 +152,7 @@ def get_euler_angles_from_rotation_matrix(R):
     return Point(x, y, z)
 
 def get_identified_corners(apriltag_locations, tagIDs):
-    found_apriltag_idx_array = [-1, -1, -1, -1]
+    found_apriltag_idx_array = [-1, -1, -1, -1, -1]
 
     for i in range(0, len(apriltag_locations)):
         apriltag_location = apriltag_locations[i]
@@ -162,6 +165,8 @@ def get_identified_corners(apriltag_locations, tagIDs):
             found_apriltag_idx_array[2] = i
         elif apriltag_location.tag_id == tagIDs.bottomLeftID:
             found_apriltag_idx_array[3] = i
+        elif apriltag_location.tag_id == tagIDs.centerID:
+            found_apriltag_idx_array[4] = i
 
     return found_apriltag_idx_array
 
@@ -171,7 +176,8 @@ def able_to_identify_center(found_apriltag_idx_array):
     if found_apriltag_idx_array[0] != -1 and found_apriltag_idx_array[1] != -1\
     or found_apriltag_idx_array[3] != -1 and found_apriltag_idx_array[2] != -1\
     or found_apriltag_idx_array[0] != -1 and found_apriltag_idx_array[2] != -1\
-    or found_apriltag_idx_array[3] != -1 and found_apriltag_idx_array[1] != -1:
+    or found_apriltag_idx_array[3] != -1 and found_apriltag_idx_array[1] != -1\
+    or found_apriltag_idx_array[4] != -1:
         return True
     else:
         return False
@@ -192,29 +198,33 @@ def able_to_identify_skew_of_right_side(found_apriltag_idx_array):
     else:
         return False
 
+def get_skew_of_left_tableSide(apriltag_locations, found_apriltag_idx_array):
+    topleft = apriltag_locations[found_apriltag_idx_array[0]]
+    bottomleft = apriltag_locations[found_apriltag_idx_array[3]]
+    avg_left_skew = (get_euler_angles_from_rotation_matrix(topleft.pose_R).y + get_euler_angles_from_rotation_matrix(bottomleft.pose_R).y)/2
+    avg_left_skew = rad_to_deg(avg_left_skew)
+    # print("Left Skew: " + str(avg_left_skew))
+
+    return avg_left_skew
+
+def get_skew_of_right_tableSide(apriltag_locations, found_apriltag_idx_array):
+    topright = apriltag_locations[found_apriltag_idx_array[1]]
+    bottomright = apriltag_locations[found_apriltag_idx_array[2]]
+    avg_right_skew = (get_euler_angles_from_rotation_matrix(topright.pose_R).y + get_euler_angles_from_rotation_matrix(bottomright.pose_R).y)/2
+    avg_right_skew = rad_to_deg(avg_right_skew)
+    # print("Right Skew: " + str(avg_right_skew))
+
+    return avg_right_skew
+
 def get_skew_of_tableSide(apriltag_locations, found_apriltag_idx_array):
-
-    print("===")
-
+    
     # Always return left side first. If cannot return left skew, we will only return right skew.
     if able_to_identify_skew_of_left_side(found_apriltag_idx_array):
-        topleft = apriltag_locations[found_apriltag_idx_array[0]]
-        bottomleft = apriltag_locations[found_apriltag_idx_array[3]]
-        avg_left_skew = (get_euler_angles_from_rotation_matrix(topleft.pose_R).y + get_euler_angles_from_rotation_matrix(bottomleft.pose_R).y)/2
-        avg_left_skew = rad_to_deg(avg_left_skew)
-        print("Left Skew: " + str(avg_left_skew))
-
-        return avg_left_skew
+        return get_skew_of_left_tableSide(apriltag_locations, found_apriltag_idx_array)
 
     if able_to_identify_skew_of_right_side(found_apriltag_idx_array):
-        topright = apriltag_locations[found_apriltag_idx_array[1]]
-        bottomright = apriltag_locations[found_apriltag_idx_array[2]]
-        avg_right_skew = (get_euler_angles_from_rotation_matrix(topright.pose_R).y + get_euler_angles_from_rotation_matrix(bottomright.pose_R).y)/2
-        avg_right_skew = rad_to_deg(avg_right_skew)
-        print("Right Skew: " + str(avg_right_skew))
+        return get_skew_of_right_tableSide(apriltag_locations, found_apriltag_idx_array)
 
-        return avg_right_skew
-    
     return np.nan
 
 def find_center_x_coord(apriltag_locations, found_apriltag_idx_array):
@@ -223,6 +233,8 @@ def find_center_x_coord(apriltag_locations, found_apriltag_idx_array):
     topright = 0
     bottomleft = 0
     bottomright = 0
+    center = 0
+    x_center = 0
 
     if found_apriltag_idx_array[0] != -1:
         topleft = apriltag_locations[found_apriltag_idx_array[0]]
@@ -232,6 +244,8 @@ def find_center_x_coord(apriltag_locations, found_apriltag_idx_array):
         bottomright = apriltag_locations[found_apriltag_idx_array[2]]
     if found_apriltag_idx_array[3] != -1:
         bottomleft = apriltag_locations[found_apriltag_idx_array[3]]
+    if found_apriltag_idx_array[4] != -1:
+        center = apriltag_locations[found_apriltag_idx_array[4]]
 
     if topleft and topright:
         x_center = (topleft.center[0] + topright.center[0])/2
@@ -241,10 +255,19 @@ def find_center_x_coord(apriltag_locations, found_apriltag_idx_array):
         x_center = (bottomleft.center[0] + bottomright.center[0])/2
     elif bottomleft and topright:
         x_center = (bottomleft.center[0] + topright.center[0])/2
+    
+    if center:
+        if x_center != 0:
+            x_center = (center.center[0] + x_center)
+        else:
+            x_center = center.center[0]
 
     return int(x_center)
-    
 
+def set_point_reached(skew_offset, center_offset):
+    if abs(center_offset) <= 10:
+        return True
+    
 def get_center_horizontal_offset_of_apriltags(apriltag_locations, found_apriltag_idx_array, image_x_center):
        
     if able_to_identify_center(found_apriltag_idx_array):
@@ -269,38 +292,29 @@ def process_image(image_msg):
     proc_image = visualise_apriltags(apriltag_locations, proc_image)
 
     found_apriltag_idx_array = get_identified_corners(apriltag_locations, tableSide_tagIDs)
-
-    # Find the angle of the apriltags
-    skewness_of_table_side = get_skew_of_tableSide(apriltag_locations, found_apriltag_idx_array)
     
     # Find the center of the apriltags
     center_offset, apriltags_center_x = get_center_horizontal_offset_of_apriltags(apriltag_locations, found_apriltag_idx_array, int(proc_image.shape[1]/2))
-    
-    apriltags_success = ""
-    
-    if skewness_of_table_side != -1:
-        apriltags_success += "Skew "
-        cv2.putText(proc_image, "Skew: " + str(round(skewness_of_table_side,2)) + " deg", (int(proc_image.shape[1]//2)-60, int(proc_image.shape[0]*0.1)),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        
+    # Center Line
+    cv2.line(proc_image, (int(proc_image.shape[1]//2), int(proc_image.shape[0] * 0.11)), (int(proc_image.shape[1]//2), int(proc_image.shape[0])), (255,0, 0), 3) 
+
+
+    if set_point_reached(None, center_offset):
+        center_color = (255, 0, 0)
     else:
-        skewness_of_table_side = 0
+        center_color = (0, 255, 0)
     
     if center_offset != -1:
-        apriltags_success += "Center Found"
-        cv2.line(proc_image, (apriltags_center_x, 0), (apriltags_center_x, proc_image.shape[0]), (0, 255, 0), 3)
+        tableSide_found = True
+        
+        cv2.line(proc_image, (apriltags_center_x, 0), (apriltags_center_x, proc_image.shape[0]), center_color, 3)
         cv2.putText(proc_image, "Offset: " + str(center_offset) + " pix", 
                     (int(proc_image.shape[1]//2)+10, int(proc_image.shape[0]*0.15)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
     else:
+        tableSide_found = False
         center_offset = 0
-   
-    if center_offset == 0 and skewness_of_table_side == 0:
-        apriltags_success = "Center Skew NotFound"
-
-    cv2.line(proc_image, (int(proc_image.shape[1]//2), int(proc_image.shape[0] * 0.11)), (int(proc_image.shape[1]//2), int(proc_image.shape[0])), (255,0, 0), 3) 
-
-    skewness_of_table_side_pub = rospy.Publisher('frontCamera/tableSide_Skew', Float32, queue_size=1)
-    skewness_of_table_side_pub.publish(skewness_of_table_side)
 
     center_offset_pub = rospy.Publisher('frontCamera/tableSide_CenterOffset', Int32, queue_size=1)
     center_offset_pub.publish(center_offset)
@@ -309,8 +323,11 @@ def process_image(image_msg):
     tableside_image_pub = rospy.Publisher('frontCamera/tableSide_AnnotatedImage', Image, queue_size=1)
     tableside_image_pub.publish(image_pub)
 
-    success_pub = rospy.Publisher('frontCamera/tableSide_FoundSuccess', String, queue_size=1)
-    success_pub.publish(apriltags_success)
+    success_pub = rospy.Publisher('frontCamera/tableSide_Found', Bool, queue_size=1)
+    success_pub.publish(tableSide_found)
+
+    center_aligned_pub = rospy.Publisher('frontCamera/tableSide_CenterAligned', Bool, queue_size=1)
+    center_aligned_pub.publish(set_point_reached(None, center_offset))
 
 def start_node():
     rospy.init_node('tableSide_align')

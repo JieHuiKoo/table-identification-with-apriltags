@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(table-identification-with-apriltags)
+project(table_identification_with_apriltags)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -9,6 +9,7 @@ project(table-identification-with-apriltags)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -59,17 +60,18 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  DIRECTORY action
+  FILES
+  AlignToTable.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+  actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -102,8 +104,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES table-identification-with-apriltags
-#  CATKIN_DEPENDS rospy
+#  LIBRARIES table-identification-with_apriltags
+  CATKIN_DEPENDS rospy actionlib_msgs
 #  DEPENDS system_lib
 )
 
@@ -120,7 +122,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/table-identification-with-apriltags.cpp
+#   src/${PROJECT_NAME}/table-identification-with_apriltags.cpp
 # )
 
 ## Add cmake target dependencies of the library
