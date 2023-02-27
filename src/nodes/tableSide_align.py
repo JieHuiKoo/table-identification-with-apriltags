@@ -302,7 +302,7 @@ def process_image(image_msg):
     skewness_of_table_side_pub = rospy.Publisher('frontCamera/tableSide_Skew', Float32, queue_size=1)
     skewness_of_table_side_pub.publish(skewness_of_table_side)
 
-    center_offset_pub = rospy.Publisher('frontCamera/tableSide_CenterOffset', Int32, queue_size=1)
+    center_offset_pub = rospy.Publisher('frontCamera/tableSide_yVelocity_CenterError', Int32, queue_size=1)
     center_offset_pub.publish(center_offset)
 
     image_pub = cv2_to_imgmsg(proc_image)
@@ -316,7 +316,7 @@ def start_node():
     rospy.init_node('tableSide_align')
     rospy.loginfo('tableSide_align node started')
 
-    rospy.Subscriber("/frontCamera/color/image_rect_color/compressed", Image, process_image)
+    rospy.Subscriber("/frontCamera/color/image_raw", Image, process_image)
     
     rospy.spin()
 
