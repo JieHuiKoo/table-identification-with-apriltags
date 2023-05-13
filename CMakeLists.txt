@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(table-identification-with-apriltags)
+project(table_identification_with_apriltags)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -102,7 +102,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES table-identification-with-apriltags
+#  LIBRARIES table_identification_with_apriltags
 #  CATKIN_DEPENDS rospy
 #  DEPENDS system_lib
 )
@@ -120,7 +120,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/table-identification-with-apriltags.cpp
+#   src/${PROJECT_NAME}/table_identification_with_apriltags.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -132,7 +132,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/table
-#table-identification-with-apriltags_node.cpp)
+#table_identification_with_apriltags_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
