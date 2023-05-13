@@ -1,6 +1,6 @@
 # table_identification_with_apriltags
 
-About: This package takes takes in an RGB image, and processes information about the apriltags relative to the go1. 
+About: This package takes in an RGB image, and processes information about the apriltags relative to the go1. 
 
 To run, execute the following command
 ```
