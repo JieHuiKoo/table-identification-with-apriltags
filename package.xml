@@ -2,7 +2,9 @@
 <package format="2">
   <name>table_identification_with_apriltags</name>
   <version>0.0.0</version>
-  <description>The tabletop_identification_with_apriltags package</description>
+
+  <description>The table_identification_with_apriltags package</description>
+
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

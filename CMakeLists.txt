@@ -103,6 +103,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES table_identification_with_apriltags
   CATKIN_DEPENDS rospy
+
 #  DEPENDS system_lib
 )
 
@@ -119,7 +120,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/table-identification-with_apriltags.cpp
+#   src/${PROJECT_NAME}/table_identification_with_apriltags.cpp
 # )
 
 ## Add cmake target dependencies of the library

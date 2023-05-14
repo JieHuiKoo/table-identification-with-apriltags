@@ -341,7 +341,7 @@ def start_node():
     rospy.init_node('tableTop_align')
     rospy.loginfo('tableTop_align node started')
 
-    rospy.Subscriber("/armCamera/color/image_raw", Image, process_image)
+    rospy.Subscriber("/armCamera/color/image_rect_color/compressed", Image, process_image)
     
     rospy.spin()
 
